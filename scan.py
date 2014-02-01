@@ -20,10 +20,6 @@ def _get_flat_file_list(directory):
         else:
             yield full_path
 
-def _find_large_files(directory, max_size=ten_mb):
-    large_files = [i for i in _get_flat_file_list(directory) if os.path.getsize(i) > max_size]
-    return large_files
-
 def _get_file_hash(filename):
     md5 = hashlib.md5()
     with open(filename, 'rb') as f:
@@ -39,12 +35,6 @@ def _to_multi_dict(items):
         except KeyError:
             retval[a] = [b]
     return retval
-
-def _find_duplicate_files(lengths_dict):
-    hashes = [(_get_file_hash(f), f) for f in _get_flat_file_list(directory)]
-    hash_multi_dict = _to_multi_dict(hashes)
-    duplicate_files = [file_names for file_has, file_names in hash_multi_dict.items() if len(file_names) > 1]
-    return duplicate_files
 
 def length_dict(directory):
     lengths = {}
