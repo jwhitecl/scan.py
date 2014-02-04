@@ -36,11 +36,15 @@ def _to_multi_dict(items):
             retval[a] = [b]
     return retval
 
-def length_dict(directory):
+def length_dict(directory, skip_threshold):
     lengths = {}
 
     for f in _get_flat_file_list(directory):
         length = os.path.getsize(f)
+
+        if length <= skip_threshold:
+            continue
+
         if length in lengths:
             lengths[length].append(f)
         else:
@@ -64,17 +68,23 @@ def separate_into_duplicates(files):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--start-path', help='path to start recursive scan', default=os.getcwd())
+    parser.add_argument('--skip-threshold', 
+                        help='do not scan files smaller than a this size in bytes', 
+                        default=1, 
+                        action='store', 
+                        type=int)
     args = parser.parse_args()
     start_path = args.start_path
-    print(start_path)
+    skip_threshold = args.skip_threshold
+    print("Scanning %s" % start_path)
+    
+    if skip_threshold > 0:
+        print('Skipping files smaller than %d bytes' % skip_threshold)
 
-    lengths_dict = length_dict(start_path)
+    lengths_dict = length_dict(start_path, skip_threshold)
     
     for length, files in lengths_dict.items():
         if len(files) <= 1:
-            continue
-        if length == 0:
-            #print("Files of length 0:", files)
             continue
         print("Checking files of length", length, "bytes")
         duplicates = separate_into_duplicates(files)
@@ -82,5 +92,6 @@ if __name__ == '__main__':
             print('The following files are duplicates:')
             for d in dups:
                 print(' -', d)
+    print('done')
         
 
