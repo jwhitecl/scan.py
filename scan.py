@@ -4,6 +4,7 @@ import argparse
 import os
 import os.path
 import hashlib
+import collections
 
 one_mb = 2 ** 20
 ten_mb = 10 * one_mb
@@ -82,8 +83,10 @@ if __name__ == '__main__':
         print('Skipping files smaller than %d bytes' % skip_threshold)
 
     lengths_dict = length_dict(start_path, skip_threshold)
+    lengths = sorted(lengths_dict.keys())
     
-    for length, files in lengths_dict.items():
+    for length in lengths:
+        files = lengths_dict[length]
         if len(files) <= 1:
             continue
         print("Checking files of length", length, "bytes")
