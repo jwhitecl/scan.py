@@ -5,6 +5,7 @@ import os
 import os.path
 import hashlib
 import collections
+import fnmatch
 
 one_mb = 2 ** 20
 ten_mb = 10 * one_mb
@@ -37,10 +38,13 @@ def _to_multi_dict(items):
             retval[a] = [b]
     return retval
 
-def length_dict(directory, skip_threshold):
+def length_dict(directory, skip_threshold, exclude_globs):
     lengths = {}
 
     for f in _get_flat_file_list(directory):
+        if any(fnmatch.fnmatch(f, glob) for glob in exclude_globs):
+            continue
+
         length = os.path.getsize(f)
 
         if length <= skip_threshold:
@@ -74,6 +78,12 @@ if __name__ == '__main__':
                         default=1, 
                         action='store', 
                         type=int)
+    parser.add_argument('--exclude',
+                        help='exclude files from the scan. (globbing allowed)',
+                        action='append',
+                        default=[],
+                        type=str)
+
     args = parser.parse_args()
     start_path = args.start_path
     skip_threshold = args.skip_threshold
@@ -82,7 +92,7 @@ if __name__ == '__main__':
     if skip_threshold > 0:
         print('Skipping files smaller than %d bytes' % skip_threshold)
 
-    lengths_dict = length_dict(start_path, skip_threshold)
+    lengths_dict = length_dict(start_path, skip_threshold, args.exclude)
     lengths = sorted(lengths_dict.keys())
     
     for length in lengths:
